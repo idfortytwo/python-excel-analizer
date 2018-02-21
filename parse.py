@@ -1,10 +1,11 @@
-import re, sys, operator
+import re, sys, operator, os
 
 from openpyxl import load_workbook
 from pattern import Pattern
 from json import encoder
 from flask import Flask, request, jsonify
 from werkzeug import secure_filename
+from secrets import token_hex
 
 encoder.FLOAT_REPR = lambda o: format(o, '.2f')
 
@@ -34,12 +35,15 @@ def percentage(part, whole):
 
 @app.route('/', methods=['POST'])
 def parse():
+    if not os.path.exists('files'):
+        os.makedirs('files')
 
-    file = open('temp.xlsx', 'wb')
+    filename = 'files/temp{}.xlsx'.format(token_hex(30))
+    file = open(filename, 'wb')
     file.write(request.data)
     file.close()
 
-    wb = load_workbook('temp.xlsx')
+    wb = load_workbook(filename)
     name = wb.sheetnames[0]
     ws = wb[name]
 
@@ -212,7 +216,7 @@ def parse():
             data.append(row)
 
 
-    return jsonify(metadata=metadata, data=data)
+    return jsonify(metadata=metadata, data=data, filename=filename)
 
 
 if __name__ == '__main__':
