@@ -1,0 +1,2 @@
+openpyxl==2.5.0
+Flask==0.12.2
